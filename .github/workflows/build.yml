@@ -1,0 +1,74 @@
+name: Build macOS Release
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    name: Build macOS Binary (${{ matrix.target }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            name: Apple Silicon (M1/M2/M3)
+          - target: x86_64-apple-darwin
+            name: Intel Mac
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lipsyncdetection-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/lipsyncdetection
+
+  release:
+    name: Create GitHub Release
+    needs: build-mac
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Compress binaries
+        run: |
+          cd artifacts
+          mkdir release_assets
+          for dir in lipsyncdetection-*; do
+            target_name="${dir#lipsyncdetection-}"
+            tar -czf "release_assets/lipsyncdetection-${target_name}.tar.gz" -C "$dir" lipsyncdetection
+          done
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/release_assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
