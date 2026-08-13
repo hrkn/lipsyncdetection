@@ -42,10 +42,11 @@ FFmpegバックエンドを使用しているため、主要な動画・音声�
 
 ## 🛠 動作要件・前提条件・必要ランタイム
 
-- **OS**: Windows 10 / 11 (64-bit)
+- **OS**: Windows 10 / 11 (64-bit), macOS 11.0 以降 (Apple Silicon / Intel Mac)
 - **Rust**: 1.97.0 以上（ソースコードからビルドする場合）
 - **FFmpeg / FFprobe**:
-  - `ffmpeg` および `ffprobe` がシステム環境変数 `PATH` に通っていること（または `lipsyncdetection.exe` と同一ディレクトリに配置されていること）
+  - `ffmpeg` および `ffprobe` が実行ファイル（`lipsyncdetection` / `lipsyncdetection.exe`）と同一ディレクトリに配置されていること（※「FFmpeg同梱版」リリースパッケージには同梱済み）。
+  - またはシステム環境変数 `PATH` に通っていること。
 - **Microsoft Visual C++ 再配布可能パッケージ (MSVCランタイム)**:
   - 構築した `.exe` ファイルの実行には `vcruntime140.dll` 等を提供する **Visual C++ 2015–2022 再配布可能パッケージ (x64)** が必要です（多くの環境にはインストール済みですが、エラーで起動しない場合は [Microsoft 公式ページ](https://learn.microsoft.com/ja-jp/cpp/windows/latest-supported-vc-redist?view=msvc-170) よりダウンロードして導入してください）。
 - **OS標準機能 (追加導入不要)**:
@@ -86,5 +87,11 @@ cargo test
 
 ## 📄 ライセンス
 
-本プロジェクトは [MIT License](LICENSE) のもとで公開されています。
+本アプリケーションのソースコードは [MIT License](LICENSE) のもとで公開されています。
+
+### 第三者ソフトウェア（FFmpeg）について
+- 本アプリケーションは、動画および音声データの解析・抽出に [FFmpeg](https://ffmpeg.org/)（[FFprobe](https://ffmpeg.org/)）を使用しています。
+- FFmpeg / FFprobe は [LGPL v2.1+](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) / [GPL v2+](https://www.gnu.org/licenses/gpl-2.0.html) ライセンスのもとで開発・配布されているソフトウェアです。
+- FFmpeg 同梱版パッケージに同封されている `ffmpeg` および `ffprobe` のスタティックバイナリは独立したプロセスとして呼び出されます。
+- FFmpeg のソースコードおよび詳細については [FFmpeg 公式サイト](https://ffmpeg.org/) または [FFmpegBin](https://github.com/Tyrrrz/FFmpegBin) リポジトリを参照してください。
 

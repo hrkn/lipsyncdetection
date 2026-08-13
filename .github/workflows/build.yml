@@ -38,11 +38,41 @@ jobs:
       - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Upload artifact
+      - name: Upload binary-only artifact
         uses: actions/upload-artifact@v4
         with:
           name: lipsyncdetection-${{ matrix.target }}
           path: target/${{ matrix.target }}/release/lipsyncdetection
+
+      - name: Prepare FFmpeg bundled package
+        run: |
+          TARGET="${{ matrix.target }}"
+          if [ "$TARGET" = "aarch64-apple-darwin" ]; then
+            FFMPEG_URL="https://github.com/Tyrrrz/FFmpegBin/releases/latest/download/ffmpeg-osx-arm64.zip"
+          else
+            FFMPEG_URL="https://github.com/Tyrrrz/FFmpegBin/releases/latest/download/ffmpeg-osx-x64.zip"
+          fi
+
+          mkdir -p ffmpeg_tmp
+          curl -L "$FFMPEG_URL" -o ffmpeg_tmp/ffmpeg.zip
+          unzip -o ffmpeg_tmp/ffmpeg.zip -d ffmpeg_tmp/
+
+          BUNDLED_DIR="target/$TARGET/bundled"
+          mkdir -p "$BUNDLED_DIR"
+          cp "target/$TARGET/release/lipsyncdetection" "$BUNDLED_DIR/"
+
+          find ffmpeg_tmp -name "ffmpeg" -type f -exec cp {} "$BUNDLED_DIR/" \;
+          find ffmpeg_tmp -name "ffprobe" -type f -exec cp {} "$BUNDLED_DIR/" \;
+
+          chmod +x "$BUNDLED_DIR/lipsyncdetection" "$BUNDLED_DIR/ffmpeg" "$BUNDLED_DIR/ffprobe"
+          xattr -dr com.apple.quarantine "$BUNDLED_DIR"/* || true
+          rm -rf ffmpeg_tmp
+
+      - name: Upload ffmpeg-bundled artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lipsyncdetection-ffmpeg-${{ matrix.target }}
+          path: target/${{ matrix.target }}/bundled/
 
   release:
     name: Create GitHub Release
@@ -61,9 +91,10 @@ jobs:
         run: |
           cd artifacts
           mkdir release_assets
-          for dir in lipsyncdetection-*; do
-            target_name="${dir#lipsyncdetection-}"
-            tar -czf "release_assets/lipsyncdetection-${target_name}.tar.gz" -C "$dir" lipsyncdetection
+          for dir in *; do
+            if [ -d "$dir" ] && [ "$dir" != "release_assets" ]; then
+              tar -czf "release_assets/${dir}.tar.gz" -C "$dir" .
+            fi
           done
 
       - name: Create Release
