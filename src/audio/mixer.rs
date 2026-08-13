@@ -50,7 +50,7 @@ impl MixPlayer {
         let temp_wav = NamedTempFile::new().map_err(|e| format!("Failed to create temp file: {}", e))?;
         let temp_path = temp_wav.path().with_extension("wav");
 
-        let mut cmd = Command::new("ffmpeg");
+        let mut cmd = Command::new(crate::utils::get_ffmpeg_path());
         cmd.args([
             "-y",
             "-ss",

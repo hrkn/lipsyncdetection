@@ -49,7 +49,7 @@ struct FfprobeFormat {
 }
 
 pub fn probe_media_file(path: &Path) -> Result<MediaFile, String> {
-    let output = Command::new("ffprobe")
+    let output = Command::new(crate::utils::get_ffprobe_path())
         .args([
             "-v",
             "quiet",

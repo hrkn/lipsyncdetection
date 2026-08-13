@@ -2,6 +2,7 @@ mod analysis;
 mod audio;
 mod media;
 mod ui;
+mod utils;
 
 use ui::SyncDetectorApp;
 

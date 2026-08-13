@@ -12,7 +12,7 @@ pub fn analyze_audio_track(
     let sample_rate = 44100usize;
     let duration_str = format!("{:.2}", max_duration_secs);
 
-    let mut child = Command::new("ffmpeg")
+    let mut child = Command::new(crate::utils::get_ffmpeg_path())
         .args([
             "-ss",
             "0",

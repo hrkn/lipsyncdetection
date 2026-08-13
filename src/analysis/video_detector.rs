@@ -32,7 +32,7 @@ pub fn analyze_video_track(
 
     let duration_str = format!("{:.2}", max_duration_secs);
 
-    let mut child = Command::new("ffmpeg")
+    let mut child = Command::new(crate::utils::get_ffmpeg_path())
         .args([
             "-ss",
             "0",
