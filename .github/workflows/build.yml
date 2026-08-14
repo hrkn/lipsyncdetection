@@ -93,7 +93,7 @@ jobs:
           mkdir release_assets
           for dir in *; do
             if [ -d "$dir" ] && [ "$dir" != "release_assets" ]; then
-              tar -czf "release_assets/${dir}.tar.gz" -C "$dir" .
+              (cd "$dir" && zip -r "../release_assets/${dir}.zip" .)
             fi
           done
 
